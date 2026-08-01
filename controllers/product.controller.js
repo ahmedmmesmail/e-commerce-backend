@@ -26,7 +26,7 @@ const productValidation = joi.object({
         'number.base': 'This field must be a valid number.',
         'number.positive': 'The number must be a positive value greater than zero.',
         'number.precision': 'The number cannot have more than 2 decimal places.',
-        
+
     }),
     priceAfterDiscount: joi.number().positive().precision(2).messages({
         'number.base': 'This field must be a valid number.',
@@ -77,6 +77,7 @@ export async function createProduct(req, res) {
         brandID, categoryID, subCategoryID, ratingAvg, ratingCount, stock, soldCount
     } = req.body
 
+    let isExist = await productModel.findOne({ title })
     let { error } = productValidation.validate(req.body, { abortEarly: false, convert: false })
 
     if (error) {
@@ -90,11 +91,15 @@ export async function createProduct(req, res) {
             errors: allErrors
         })
     } else {
-        let result = await productModel.insertMany({
-            title, description, imageCover, images, price, priceAfterDiscount,
-            brandID, categoryID, subCategoryID, ratingAvg, ratingCount, stock, soldCount
-        })
-        res.json({ message: 'added ', result })
+        if (isExist) {
+            res.json({ message: 'product is already exist' })
+        } else {
+            let result = await productModel.insertMany({
+                title, description, imageCover, images, price, priceAfterDiscount,
+                brandID, categoryID, subCategoryID, ratingAvg, ratingCount, stock, soldCount
+            })
+            res.json({ message: 'added ', result })
+        }
     }
 }
 

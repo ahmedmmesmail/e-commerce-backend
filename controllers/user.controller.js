@@ -30,15 +30,21 @@ const signUpShcema = joi.object({
         'string.email': 'The email address provided is invalid.',
 
     }),
-    password: joi.string().min(8).required().messages({
+    password: joi.string().min(8).max(20).required().messages({
         'string.base': 'This field must be a valid text string.',
         'string.empty': 'This field cannot be empty.',
         'string.min': 'This field must be at least 8 characters long.',
+        'string.max': 'This field cannot exceed 20 characters.',
+    }),
+    profilePic: joi.string().uri().required().messages({
+        'string.base': 'This field must be a valid text string.',
+        'string.empty': 'This field cannot be empty.',
+        'string.uri': 'The URL provided is invalid or malformed.',
     }),
 })
 
 export async function signUp(req, res) {
-    let { name, email, password } = req.body
+    let { name, email, password, profilePic } = req.body
 
     let user = await userModel.findOne({ email })
     // 1. ضفنا خيار abortEarly: false عشان يكمل فحص وميقفش عند أول غلطة
@@ -66,7 +72,7 @@ export async function signUp(req, res) {
             res.json({ message: 'user is already exist' })
         } else {
             bcrypt.hash(password, 10, async function (err, hash) {
-                await userModel.insertMany({ name, email, password: hash })
+                await userModel.insertMany({ name, email, password: hash, profilePic })
                 res.json({ message: 'signed up successfully' })
             })
         }
